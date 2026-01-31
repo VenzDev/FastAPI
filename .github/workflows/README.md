@@ -6,14 +6,16 @@ Aby workflow działał, musisz skonfigurować następujące secrets w GitHub:
 
 1. **AWS_ACCESS_KEY_ID** - AWS Access Key ID
 2. **AWS_SECRET_ACCESS_KEY** - AWS Secret Access Key
+3. **CODECOV_TOKEN** - Codecov repository upload token (opcjonalne, ale zalecane aby uniknąć rate limits)
 
 ### Jak skonfigurować secrets:
 
 1. Przejdź do Settings → Secrets and variables → Actions w Twoim repozytorium GitHub
 2. Kliknij "New repository secret"
-3. Dodaj oba secrets:
+3. Dodaj secrets:
    - `AWS_ACCESS_KEY_ID`
    - `AWS_SECRET_ACCESS_KEY`
+   - `CODECOV_TOKEN` (opcjonalne - pobierz z https://codecov.io → Settings → General → Repository Upload Token)
 
 ### Tworzenie użytkownika IAM dla GitHub Actions:
 
