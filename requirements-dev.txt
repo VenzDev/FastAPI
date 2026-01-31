@@ -1,0 +1,19 @@
+# Development dependencies for code quality
+# Install with: pip install -r requirements-dev.txt
+
+# Linting and formatting
+ruff>=0.1.0
+
+# Type checking
+mypy>=1.7.0
+
+# Security scanning
+bandit>=1.7.5
+
+# Testing
+pytest>=7.4.3
+pytest-cov>=4.1.0
+httpx>=0.25.0,<0.28  # For testing FastAPI (compatible with starlette 0.27.0)
+
+# Production dependencies (also needed for dev)
+-r requirements.txt

@@ -1,11 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(
-    title="FastAPI Starter",
-    description="A starter FastAPI appblication",
-    version="1.0.0"
-)
+app = FastAPI(title="FastAPI Starter", description="A starter FastAPI application", version="1.0.0")
 
 # CORS middleware
 app.add_middleware(
