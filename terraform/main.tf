@@ -107,18 +107,9 @@ resource "aws_cloudwatch_log_group" "app" {
   }
 }
 
-# ECR Repository
-resource "aws_ecr_repository" "app" {
-  name                 = var.project_name
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Name = "${var.project_name}-ecr"
-  }
+# ECR Repository - using existing repository (data source)
+data "aws_ecr_repository" "app" {
+  name = var.ecr_repository_name
 }
 
 # IAM Role for ECS Task Execution
@@ -193,7 +184,7 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name  = var.project_name
-      image = "${aws_ecr_repository.app.repository_url}:latest"
+      image = "${data.aws_ecr_repository.app.repository_url}:latest"
       
       portMappings = [
         {

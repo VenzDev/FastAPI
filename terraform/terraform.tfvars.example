@@ -3,3 +3,7 @@ aws_region = "eu-central-1"
 
 # Project Configuration
 project_name = "fastapi-app"
+
+# ECR Repository Configuration
+# Name of the existing ECR repository (must exist before running terraform apply)
+ecr_repository_name = "fastapi-app"

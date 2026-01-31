@@ -9,3 +9,9 @@ variable "project_name" {
   type        = string
   default     = "fastapi-app"
 }
+
+variable "ecr_repository_name" {
+  description = "Name of the existing ECR repository to use"
+  type        = string
+  default     = "fastapi-app"
+}
