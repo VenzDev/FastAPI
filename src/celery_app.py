@@ -1,17 +1,14 @@
-import os
+from celery import Celery  # type: ignore[import-untyped]
 
-from celery import Celery
+from src.config import get_settings
 
-# RabbitMQ connection URL
-broker_url = os.getenv("CELERY_BROKER_URL")
-# RPC backend for results (uses RabbitMQ RPC, no additional service needed)
-result_backend = os.getenv("CELERY_RESULT_BACKEND")
+settings = get_settings()
 
 # Create Celery instance
 celery_app = Celery(
     "fastapi_app",
-    broker=broker_url,
-    backend=result_backend,
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND,
     include=["src.tasks"],
 )
 

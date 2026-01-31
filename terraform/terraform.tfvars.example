@@ -7,3 +7,7 @@ project_name = "fastapi-app"
 # ECR Repository Configuration
 # Name of the existing ECR repository (must exist before running terraform apply)
 ecr_repository_name = "fastapi-app"
+
+# RabbitMQ
+rabbitmq_username = "admin"
+rabbitmq_password = "admin"

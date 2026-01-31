@@ -2,11 +2,18 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from src.config import get_settings
 from src.tasks import process_message
 
-app = FastAPI(title="FastAPI Starter", description="A starter FastAPI application", version="1.0.0")
+settings = get_settings()
 
-# CORS middleware
+app = FastAPI(
+    title=settings.APP_NAME,
+    description="A starter FastAPI application",
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG,
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
