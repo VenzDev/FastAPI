@@ -15,3 +15,16 @@ variable "ecr_repository_name" {
   type        = string
   default     = "fastapi-app"
 }
+
+variable "rabbitmq_username" {
+  description = "RabbitMQ username"
+  type        = string
+  default     = "admin"
+  sensitive   = true
+}
+
+variable "rabbitmq_password" {
+  description = "RabbitMQ password"
+  type        = string
+  sensitive   = true
+}
