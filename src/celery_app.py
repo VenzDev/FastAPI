@@ -22,4 +22,5 @@ celery_app.conf.update(
     task_track_started=True,
     task_time_limit=30 * 60,
     task_soft_time_limit=25 * 60,
+    result_backend=settings.CELERY_RESULT_BACKEND,
 )
