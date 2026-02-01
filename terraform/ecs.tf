@@ -17,6 +17,20 @@ resource "aws_ecs_task_definition" "rabbitmq" {
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
   task_role_arn            = aws_iam_role.ecs_task.arn
 
+  volume {
+    name = "rabbitmq-data"
+
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.rabbitmq.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED" 
+      authorization_config {
+        access_point_id = aws_efs_access_point.rabbitmq.id
+        iam             = "ENABLED"
+      }
+    }
+  }
+
   container_definitions = jsonencode([
     {
       name  = "rabbitmq"
@@ -41,6 +55,14 @@ resource "aws_ecs_task_definition" "rabbitmq" {
         {
           name  = "RABBITMQ_DEFAULT_PASS"
           value = var.rabbitmq_password
+        }
+      ]
+
+      mountPoints = [
+        {
+          sourceVolume  = "rabbitmq-data"
+          containerPath = "/var/lib/rabbitmq"
+          readOnly      = false
         }
       ]
 
@@ -88,7 +110,10 @@ resource "aws_ecs_service" "rabbitmq" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.ecs_task_execution
+    aws_iam_role_policy_attachment.ecs_task_execution,
+    aws_efs_mount_target.rabbitmq,
+    aws_efs_access_point.rabbitmq,
+    aws_iam_role_policy.ecs_task_execution_efs
   ]
 
   tags = {
@@ -119,7 +144,12 @@ resource "aws_ecs_task_definition" "app" {
       ]
 
       environment = local.environment_vars
-      secrets     = local.ssm_secrets
+      secrets = [
+        {
+          name      = "CELERY_BROKER_URL"
+          valueFrom = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project_name}/celery_broker_url"
+        }
+      ]
 
       logConfiguration = {
         logDriver = "awslogs"
@@ -168,5 +198,78 @@ resource "aws_ecs_service" "app" {
 
   tags = {
     Name = "${var.project_name}-service"
+  }
+}
+
+# ECS Task Definition dla Celery Worker
+resource "aws_ecs_task_definition" "celery_worker" {
+  family                   = "${var.project_name}-celery-worker"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = aws_iam_role.ecs_task_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  container_definitions = jsonencode([
+    {
+      name  = "${var.project_name}-celery-worker"
+      image = "${data.aws_ecr_repository.app.repository_url}:latest"
+
+      environment = local.environment_vars
+      secrets = [
+        {
+          name      = "CELERY_BROKER_URL"
+          valueFrom = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project_name}/celery_broker_url"
+        }
+      ]
+
+      command = [
+        "celery",
+        "-A",
+        "src.celery_app",
+        "worker",
+        "--loglevel=info"
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.celery_worker.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    }
+  ])
+
+  tags = {
+    Name = "${var.project_name}-celery-worker-task"
+  }
+}
+
+# ECS Service dla Celery Worker
+resource "aws_ecs_service" "celery_worker" {
+  name            = "${var.project_name}-celery-worker-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.celery_worker.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = [aws_subnet.public.id]
+    security_groups  = [aws_security_group.celery_worker.id]
+    assign_public_ip = true
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.ecs_task_execution,
+    aws_ecs_service.rabbitmq,
+    aws_ssm_parameter.celery_broker_url,
+    aws_iam_role_policy.ecs_task_execution_ssm
+  ]
+
+  tags = {
+    Name = "${var.project_name}-celery-worker-service"
   }
 }

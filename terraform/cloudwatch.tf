@@ -17,3 +17,13 @@ resource "aws_cloudwatch_log_group" "rabbitmq" {
     Name = "${var.project_name}-rabbitmq-logs"
   }
 }
+
+# CloudWatch Log Group dla Celery Worker
+resource "aws_cloudwatch_log_group" "celery_worker" {
+  name              = "/ecs/${var.project_name}-celery-worker"
+  retention_in_days = 7
+
+  tags = {
+    Name = "${var.project_name}-celery-worker-logs"
+  }
+}

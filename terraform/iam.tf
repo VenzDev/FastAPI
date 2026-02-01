@@ -61,6 +61,32 @@ resource "aws_iam_role_policy" "ecs_task_execution_ssm" {
   })
 }
 
+# IAM Policy for EFS access
+resource "aws_iam_role_policy" "ecs_task_execution_efs" {
+  name = "${var.project_name}-ecs-task-execution-efs-policy"
+  role = aws_iam_role.ecs_task_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticfilesystem:ClientMount",
+          "elasticfilesystem:ClientWrite",
+          "elasticfilesystem:ClientRootAccess"
+        ]
+        Resource = aws_efs_file_system.rabbitmq.arn
+        Condition = {
+          StringEquals = {
+            "elasticfilesystem:AccessPointArn" = aws_efs_access_point.rabbitmq.arn
+          }
+        }
+      }
+    ]
+  })
+}
+
 # IAM Role for ECS Task
 resource "aws_iam_role" "ecs_task" {
   name = "${var.project_name}-ecs-task-role"

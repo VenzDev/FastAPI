@@ -39,11 +39,11 @@ resource "aws_security_group" "rabbitmq" {
   }
 
   ingress {
-    description     = "Management UI from ECS tasks"
-    from_port       = 15672
-    to_port         = 15672
+    description     = "AMQP from Celery worker"
+    from_port       = 5672
+    to_port         = 5672
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
+    security_groups = [aws_security_group.celery_worker.id]
   }
 
   egress {
@@ -55,5 +55,23 @@ resource "aws_security_group" "rabbitmq" {
 
   tags = {
     Name = "${var.project_name}-rabbitmq-sg"
+  }
+}
+
+# Security Group dla Celery Worker
+resource "aws_security_group" "celery_worker" {
+  name        = "${var.project_name}-celery-worker-sg"
+  description = "Security group for Celery worker tasks"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name}-celery-worker-sg"
   }
 }
